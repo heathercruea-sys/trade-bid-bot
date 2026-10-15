@@ -1,0 +1,72 @@
+[
+  {
+    "id": "cl-21ef5868d2",
+    "title": "Conduit- Electrical, PVC Pipe$5Dallas",
+    "source": "Craigslist",
+    "location": "Dallas",
+    "url": "https://www.craigslist.org/view/d/mesquite-conduit-electrical-pvc-pipe/8wzAJfNWfrFJ5ee4wx3QQ7",
+    "is_valid": false,
+    "quote_range": null,
+    "proposal": null
+  },
+  {
+    "id": "cl-b64e97918d",
+    "title": "Full Electrical Bed Package$5Richardson",
+    "source": "Craigslist",
+    "location": "Richardson",
+    "url": "https://www.craigslist.org/view/d/richardson-full-electrical-bed-package/jSVrWRXXmXp35Mwii6h4RU",
+    "is_valid": false,
+    "quote_range": null,
+    "proposal": null
+  },
+  {
+    "id": "cl-5d86c6b3ff",
+    "title": "Ideal Steel Fish Tape replacement for 31-033$15Plano",
+    "source": "Craigslist",
+    "location": "Plano",
+    "url": "https://www.craigslist.org/view/d/plano-ideal-steel-fish-tape-replacement/kJnEmc9gBavTZzYysPt6A7",
+    "is_valid": false,
+    "quote_range": null,
+    "proposal": null
+  },
+  {
+    "id": "cl-4f65724908",
+    "title": "Job Site 50A 120/240 1Phase Construction Temporary Power Spider Box$100south DFW",
+    "source": "Craigslist",
+    "location": "south DFW",
+    "url": "https://www.craigslist.org/view/d/midlothian-job-site-50a-phase/hHhxcibTyfH5qSsbVrY74C",
+    "is_valid": false,
+    "quote_range": null,
+    "proposal": null
+  },
+  {
+    "id": "cl-72608e1af0",
+    "title": "Job Site 50A 120/240 1Phase Construction Temporary Power Spider Box$150south DFW",
+    "source": "Craigslist",
+    "location": "south DFW",
+    "url": "https://www.craigslist.org/view/d/midlothian-job-site-50a-phase/mBCJxsW3B1Rve85v8XrtKe",
+    "is_valid": false,
+    "quote_range": null,
+    "proposal": null
+  },
+  {
+    "id": "sim-electrical-1",
+    "title": "Install Level 2 EV Charger in 2-car garage",
+    "source": "Residential Lead Feed",
+    "location": "dallas (Eastview)",
+    "url": "https://leads.example.com/jobs/electrical-1",
+    "is_valid": true,
+    "quote_range": "$170 - $230",
+    "proposal": "Hi there! This is Mike Miller with Apex Home Solutions. We specialize in residential electrical in your area and can easily take care of this for you. Fully licensed (#LIC-849204) and insured. For this scope, our typical price ranges between $170 - $230. We have open availability this week\u2014let me know when is best to stop by or call (555) 234-5678 to lock in a time!"
+  },
+  {
+    "id": "sim-electrical-2",
+    "title": "Install 3 ceiling fans with light kits",
+    "source": "Residential Lead Feed",
+    "location": "dallas (South Green)",
+    "url": "https://leads.example.com/jobs/electrical-2",
+    "is_valid": true,
+    "quote_range": "$340 - $460",
+    "proposal": "Hi there! This is Mike Miller with Apex Home Solutions. We specialize in residential electrical in your area and can easily take care of this for you. Fully licensed (#LIC-849204) and insured. For this scope, our typical price ranges between $340 - $460. We have open availability this week\u2014let me know when is best to stop by or call (555) 234-5678 to lock in a time!"
+  }
+]

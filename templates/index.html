@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradeBid - Residential Trade Bidding Bot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+  <!-- Navbar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-30 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+          <i class="fa-solid fa-bolt text-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-xl tracking-tight flex items-center gap-2">
+            TradeBid <span class="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold">Residential MVP</span>
+          </h1>
+          <p class="text-xs text-slate-400">Automated Speed-to-Lead Scraping & Bid Dispatch</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Upgrade to Pro Stripe Button -->
+        <a href="https://buy.stripe.com/bJe9ATcF3eV2bTxg5VcMM02" target="_blank" class="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-lg shadow-emerald-500/20 border border-emerald-400/30 transition transform hover:-translate-y-0.5 active:scale-95">
+          <i class="fa-solid fa-crown text-amber-300"></i>
+          <span>Upgrade to Pro</span>
+        </a>
+
+        <!-- Auto Pilot Switch -->
+        <label class="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700/80 px-3.5 py-2 rounded-xl cursor-pointer hover:border-slate-600 transition">
+          <input type="checkbox" id="autoPilotToggle" onchange="toggleAutoPilot(this.checked)" class="sr-only peer">
+          <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500 relative"></div>
+          <span class="text-xs font-semibold text-slate-300 peer-checked:text-emerald-400">Auto-Pilot Mode</span>
+        </label>
+
+        <!-- Scan Button -->
+        <button id="scanBtn" onclick="scanLeads()" class="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold text-sm px-4 py-2 rounded-xl shadow-lg shadow-orange-500/25 transition active:scale-95">
+          <i class="fa-solid fa-radar" id="scanIcon"></i>
+          <span>Scan New Leads</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto p-6 space-y-6">
+
+    <!-- Metrics Row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase">
+          <span>Leads Scanned</span>
+          <i class="fa-solid fa-magnifying-glass text-slate-500"></i>
+        </div>
+        <div class="text-2xl font-bold mt-2 text-white" id="statScanned">0</div>
+        <div class="text-[11px] text-slate-500 mt-1">Live Craigslist & Marketplaces</div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase">
+          <span>Ready to Bid</span>
+          <i class="fa-solid fa-bullseye text-amber-500"></i>
+        </div>
+        <div class="text-2xl font-bold mt-2 text-amber-400" id="statQualified">0</div>
+        <div class="text-[11px] text-slate-500 mt-1">Passed spam & trade filters</div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase">
+          <span>Bids Submitted</span>
+          <i class="fa-solid fa-circle-check text-emerald-500"></i>
+        </div>
+        <div class="text-2xl font-bold mt-2 text-emerald-400" id="statSubmitted">0</div>
+        <div class="text-[11px] text-slate-500 mt-1">Proposals delivered</div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase">
+          <span>Pipeline Value</span>
+          <i class="fa-solid fa-dollar-sign text-emerald-400"></i>
+        </div>
+        <div class="text-2xl font-bold mt-2 text-white" id="statPipeline">$0</div>
+        <div class="text-[11px] text-slate-500 mt-1">Estimated active quotes</div>
+      </div>
+    </div>
+
+    <!-- 2 Column Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- Left Column: Settings, Trade & Profile (4 cols) -->
+      <div class="lg:col-span-4 space-y-6">
+        
+        <!-- Trade Selection & Rates Form -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+          <h2 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+            <i class="fa-solid fa-sliders text-amber-500"></i> Trade & Rate Card
+          </h2>
+
+          <div class="space-y-4 text-sm">
+            <!-- Trade Buttons -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Select Your Trade</label>
+              <div class="grid grid-cols-2 gap-2" id="tradeSelector">
+                <button type="button" onclick="selectTrade('plumbing')" class="trade-btn py-2 px-3 rounded-xl border text-xs font-medium text-left flex items-center gap-2 transition" data-trade="plumbing">
+                  <i class="fa-solid fa-faucet-drip text-blue-400"></i> Plumbing
+                </button>
+                <button type="button" onclick="selectTrade('electrical')" class="trade-btn py-2 px-3 rounded-xl border text-xs font-medium text-left flex items-center gap-2 transition" data-trade="electrical">
+                  <i class="fa-solid fa-plug text-amber-400"></i> Electrical
+                </button>
+                <button type="button" onclick="selectTrade('painting')" class="trade-btn py-2 px-3 rounded-xl border text-xs font-medium text-left flex items-center gap-2 transition" data-trade="painting">
+                  <i class="fa-solid fa-paint-roller text-purple-400"></i> Painting
+                </button>
+                <button type="button" onclick="selectTrade('handyman')" class="trade-btn py-2 px-3 rounded-xl border text-xs font-medium text-left flex items-center gap-2 transition" data-trade="handyman">
+                  <i class="fa-solid fa-hammer text-orange-400"></i> Handyman
+                </button>
+                <button type="button" onclick="selectTrade('hvac')" class="trade-btn py-2 px-3 rounded-xl border text-xs font-medium text-left flex items-center gap-2 transition" data-trade="hvac">
+                  <i class="fa-solid fa-snowflake text-cyan-400"></i> HVAC
+                </button>
+                <button type="button" onclick="selectTrade('roofing')" class="trade-btn py-2 px-3 rounded-xl border text-xs font-medium text-left flex items-center gap-2 transition" data-trade="roofing">
+                  <i class="fa-solid fa-house-chimney text-emerald-400"></i> Roofing
+                </button>
+              </div>
+            </div>
+
+            <!-- Target Location -->
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Target Metro / City</label>
+              <input type="text" id="targetCity" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none">
+            </div>
+
+            <!-- Rates Grid -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Hourly Rate ($/hr)</label>
+                <input type="number" id="hourlyRate" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Min. Service Fee ($)</label>
+                <input type="number" id="minCalloutFee" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none">
+              </div>
+            </div>
+
+            <!-- Contractor Info -->
+            <div class="pt-2 border-t border-slate-800 space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Company Name</label>
+                <input type="text" id="companyName" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Contact Name</label>
+                  <input type="text" id="contactName" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Phone (SMS Alert)</label>
+                  <input type="text" id="phone" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">License # (Optional)</label>
+                <input type="text" id="licenseNumber" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:border-amber-500 focus:outline-none">
+              </div>
+            </div>
+
+            <button onclick="saveProfile()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-2 rounded-xl text-xs border border-slate-700 transition">
+              <i class="fa-solid fa-floppy-disk mr-1"></i> Save Profile & Rate Rules
+            </button>
+          </div>
+        </div>
+
+        <!-- Pro Membership Subscription Card -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-5 shadow-xl">
+          <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 px-2.5 py-0.5 rounded-full font-sans">
+              Pro Access
+            </span>
+            <span class="text-xs font-bold text-amber-400 font-mono">$49 / month</span>
+          </div>
+
+          <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-crown text-amber-400"></i> Unlock Full Auto-Pilot
+          </h3>
+
+          <ul class="text-[11px] text-slate-300 space-y-1.5 mb-4">
+            <li class="flex items-center gap-2">
+              <i class="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+              <span>24/7 Background Lead Scanner</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i class="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+              <span>Instant Auto-Bidding (< 60s Speed-to-Lead)</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i class="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+              <span>Real-Time SMS Alerts directly to phone</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i class="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+              <span>Unlimited Bids & Leads</span>
+            </li>
+          </ul>
+
+          <a href="https://buy.stripe.com/bJe9ATcF3eV2bTxg5VcMM02" target="_blank" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-xs py-2.5 rounded-xl shadow-lg shadow-orange-500/20 transition transform active:scale-95">
+            <span>Subscribe via Stripe Checkout</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+          </a>
+          <p class="text-[10px] text-center text-slate-500 mt-2">Secure checkout powered by Stripe • Cancel anytime</p>
+        </div>
+
+        <!-- SMS Quick Simulator Card -->
+        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-mobile-screen text-emerald-400"></i> SMS Responder Simulator
+            </h2>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">Interactive</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-3">
+            When a new job appears, you receive a text. Reply <code class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-400">YES</code> to submit or <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">NO</code> to pass.
+          </p>
+          <div class="flex gap-2">
+            <input type="text" id="simSmsInput" placeholder="e.g. YES or YES cl-1234" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none">
+            <button onclick="simulateSmsReply()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition">
+              Reply
+            </button>
+          </div>
+          <div id="smsFeedback" class="text-xs mt-2.5 text-slate-400 font-mono hidden bg-slate-950 p-2 rounded-lg border border-slate-800"></div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Live Lead Board (8 cols) -->
+      <div class="lg:col-span-8 space-y-4">
+        
+        <!-- Tab Navigation -->
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex gap-2">
+            <button onclick="setTab('all')" id="tabAll" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-white border border-slate-700">All Leads (<span id="countAll">0</span>)</button>
+            <button onclick="setTab('ready')" id="tabReady" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">Ready to Bid (<span id="countReady">0</span>)</button>
+            <button onclick="setTab('submitted')" id="tabSubmitted" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">Submitted (<span id="countSubmitted">0</span>)</button>
+            <button onclick="setTab('skipped')" id="tabSkipped" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">Skipped (<span id="countSkipped">0</span>)</button>
+          </div>
+          <span class="text-xs text-slate-500 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Auto-Sync Active
+          </span>
+        </div>
+
+        <!-- Leads Container -->
+        <div id="leadsList" class="space-y-4">
+          <div class="text-center py-12 text-slate-500">
+            <i class="fa-solid fa-spinner fa-spin text-2xl text-amber-500 mb-2"></i>
+            <p class="text-sm">Loading residential job leads...</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    let currentProfile = {};
+    let leads = [];
+    let currentTab = 'all';
+
+    async function init() {
+      await fetchProfile();
+      await fetchLeads();
+    }
+
+    async function fetchProfile() {
+      const res = await fetch('/api/profile');
+      currentProfile = await res.json();
+      
+      document.getElementById('companyName').value = currentProfile.company_name || '';
+      document.getElementById('contactName').value = currentProfile.contact_name || '';
+      document.getElementById('phone').value = currentProfile.phone || '';
+      document.getElementById('hourlyRate').value = currentProfile.hourly_rate || 95;
+      document.getElementById('minCalloutFee').value = currentProfile.min_callout_fee || 150;
+      document.getElementById('licenseNumber').value = currentProfile.license_number || '';
+      document.getElementById('targetCity').value = currentProfile.target_city || 'Austin';
+      document.getElementById('autoPilotToggle').checked = !!currentProfile.auto_pilot;
+
+      updateTradeButtons(currentProfile.trade || 'plumbing');
+    }
+
+    function updateTradeButtons(selected) {
+      document.querySelectorAll('.trade-btn').forEach(btn => {
+        if (btn.dataset.trade === selected) {
+          btn.className = "trade-btn py-2 px-3 rounded-xl border text-xs font-semibold text-left flex items-center gap-2 bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-sm";
+        } else {
+          btn.className = "trade-btn py-2 px-3 rounded-xl border text-xs font-medium text-left flex items-center gap-2 border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 transition";
+        }
+      });
+    }
+
+    async function selectTrade(trade) {
+      currentProfile.trade = trade;
+      updateTradeButtons(trade);
+      await saveProfile();
+      await scanLeads();
+    }
+
+    async function saveProfile() {
+      const payload = {
+        trade: currentProfile.trade,
+        company_name: document.getElementById('companyName').value,
+        contact_name: document.getElementById('contactName').value,
+        phone: document.getElementById('phone').value,
+        email: currentProfile.email || 'contractor@example.com',
+        hourly_rate: parseFloat(document.getElementById('hourlyRate').value) || 95,
+        min_callout_fee: parseFloat(document.getElementById('minCalloutFee').value) || 150,
+        service_radius_miles: 30,
+        license_number: document.getElementById('licenseNumber').value,
+        auto_pilot: document.getElementById('autoPilotToggle').checked,
+        target_city: document.getElementById('targetCity').value
+      };
+
+      await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    async function toggleAutoPilot(enabled) {
+      currentProfile.auto_pilot = enabled;
+      await saveProfile();
+    }
+
+    async function scanLeads() {
+      const btn = document.getElementById('scanBtn');
+      const icon = document.getElementById('scanIcon');
+      btn.disabled = true;
+      icon.className = "fa-solid fa-spinner fa-spin";
+
+      try {
+        const res = await fetch('/api/scan', { method: 'POST' });
+        const data = await res.json();
+        leads = data.leads || [];
+        renderLeads();
+      } catch (e) {
+        console.error(e);
+      } finally {
+        btn.disabled = false;
+        icon.className = "fa-solid fa-radar";
+      }
+    }
+
+    async function fetchLeads() {
+      const res = await fetch('/api/leads');
+      leads = await res.json();
+      if (!leads.length) {
+        await scanLeads();
+      } else {
+        renderLeads();
+      }
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.className = "tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white";
+      });
+      const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+      if (activeBtn) activeBtn.className = "tab-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-white border border-slate-700";
+      renderLeads();
+    }
+
+    function renderLeads() {
+      const container = document.getElementById('leadsList');
+      container.innerHTML = '';
+
+      let readyCount = 0;
+      let submittedCount = 0;
+      let skippedCount = 0;
+      let pipelineVal = 0;
+
+      leads.forEach(l => {
+        if (l.status === 'SUBMITTED') submittedCount++;
+        else if (!l.is_valid_lead || l.status === 'DECLINED') skippedCount++;
+        else readyCount++;
+
+        if (l.suggested_bid_amount && l.is_valid_lead) {
+          pipelineVal += l.suggested_bid_amount;
+        }
+      });
+
+      document.getElementById('statScanned').innerText = leads.length;
+      document.getElementById('statQualified').innerText = readyCount;
+      document.getElementById('statSubmitted').innerText = submittedCount;
+      document.getElementById('statPipeline').innerText = `$${Math.round(pipelineVal).toLocaleString()}`;
+
+      document.getElementById('countAll').innerText = leads.length;
+      document.getElementById('countReady').innerText = readyCount;
+      document.getElementById('countSubmitted').innerText = submittedCount;
+      document.getElementById('countSkipped').innerText = skippedCount;
+
+      const filtered = leads.filter(l => {
+        if (currentTab === 'ready') return l.is_valid_lead && l.status === 'PENDING';
+        if (currentTab === 'submitted') return l.status === 'SUBMITTED';
+        if (currentTab === 'skipped') return !l.is_valid_lead || l.status === 'DECLINED';
+        return true;
+      });
+
+      if (!filtered.length) {
+        container.innerHTML = `
+          <div class="text-center py-12 bg-slate-900 border border-slate-800 rounded-2xl p-8">
+            <i class="fa-solid fa-inbox text-3xl text-slate-600 mb-2"></i>
+            <p class="text-slate-400 text-sm font-medium">No jobs currently in this view.</p>
+            <p class="text-slate-500 text-xs mt-1">Click "Scan New Leads" to fetch newly posted jobs in ${currentProfile.target_city}.</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(lead => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-5 shadow-md transition space-y-3.5";
+
+        const isSubmitted = lead.status === 'SUBMITTED';
+        const isSkipped = !lead.is_valid_lead || lead.status === 'DECLINED';
+
+        let statusBadge = `
+          <span class="text-[11px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+            <i class="fa-solid fa-bolt mr-1"></i> Ready to Bid
+          </span>
+        `;
+        if (isSubmitted) {
+          statusBadge = `
+            <span class="text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
+              <i class="fa-solid fa-check mr-1"></i> Bid Submitted
+            </span>
+          `;
+        } else if (isSkipped) {
+          statusBadge = `
+            <span class="text-[11px] font-semibold bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2.5 py-0.5 rounded-full">
+              <i class="fa-solid fa-ban mr-1"></i> Skipped
+            </span>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div class="space-y-1 max-w-xl">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                  ${lead.source}
+                </span>
+                <span class="text-xs text-slate-400 flex items-center gap-1">
+                  <i class="fa-solid fa-location-dot text-slate-500"></i> ${lead.location}
+                </span>
+                ${statusBadge}
+              </div>
+              <h3 class="text-base font-bold text-white tracking-tight">${lead.title}</h3>
+            </div>
+            
+            <div class="text-right">
+              ${lead.bid_price_range ? `
+                <div class="text-xs text-slate-400 font-medium">Auto-Calculated Quote</div>
+                <div class="text-lg font-extrabold text-amber-400 font-mono">${lead.bid_price_range}</div>
+              ` : `
+                <div class="text-xs text-slate-500">No Quote</div>
+              `}
+              ${lead.extracted_budget ? `
+                <div class="text-[11px] text-slate-400 mt-0.5">Homeowner: <span class="text-slate-300 font-semibold">${lead.extracted_budget}</span></div>
+              ` : ''}
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-400 leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+            ${lead.description}
+          </p>
+
+          ${!isSkipped ? `
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span class="font-semibold flex items-center gap-1.5 text-slate-300">
+                  <i class="fa-solid fa-comment-dots text-amber-400"></i> Speed-to-Lead Pitch Message:
+                </span>
+                <span class="text-[10px] text-slate-500">Editable before sending</span>
+              </div>
+              <textarea id="prop-${lead.id}" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none">${lead.generated_proposal || ''}</textarea>
+            </div>
+          ` : `
+            <div class="text-xs text-rose-400/90 bg-rose-950/20 border border-rose-900/30 p-2.5 rounded-xl">
+              <i class="fa-solid fa-circle-exclamation mr-1"></i> Filtered out: ${lead.rejection_reason || 'Manual pass'}
+            </div>
+          `}
+
+          <div class="flex flex-wrap items-center justify-between pt-2 border-t border-slate-800/80 gap-2">
+            <a href="${lead.url}" target="_blank" class="text-xs text-slate-400 hover:text-white flex items-center gap-1">
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> View Original Post
+            </a>
+
+            <div class="flex items-center gap-2">
+              ${!isSubmitted && !isSkipped ? `
+                <button onclick="passLead('${lead.id}')" class="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                  Pass
+                </button>
+                <button onclick="sendSmsAlert('${lead.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-mobile-screen text-emerald-400"></i> Alert Phone
+                </button>
+                <button onclick="submitBid('${lead.id}')" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition active:scale-95">
+                  <i class="fa-solid fa-paper-plane"></i> Submit Bid
+                </button>
+              ` : ''}
+
+              ${isSubmitted ? `
+                <span class="text-xs text-emerald-400 flex items-center gap-1 font-semibold">
+                  <i class="fa-solid fa-circle-check"></i> Bid Active & Delivered
+                </span>
+              ` : ''}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    async function submitBid(leadId) {
+      const propText = document.getElementById(`prop-${leadId}`)?.value;
+      const res = await fetch(`/api/leads/${leadId}/bid`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ custom_proposal: propText })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        const lead = leads.find(l => l.id === leadId);
+        if (lead) lead.status = 'SUBMITTED';
+        renderLeads();
+      }
+    }
+
+    async function passLead(leadId) {
+      const res = await fetch(`/api/leads/${leadId}/pass`, { method: 'POST' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        const lead = leads.find(l => l.id === leadId);
+        if (lead) lead.status = 'DECLINED';
+        renderLeads();
+      }
+    }
+
+    async function sendSmsAlert(leadId) {
+      const res = await fetch(`/api/leads/${leadId}/send-sms`, { method: 'POST' });
+      const data = await res.json();
+      const fb = document.getElementById('smsFeedback');
+      fb.classList.remove('hidden');
+      fb.innerHTML = `<span class="text-emerald-400">📱 Alert sent:</span> ${data.result.message.replace(/\n/g, '<br>')}`;
+    }
+
+    async function simulateSmsReply() {
+      const input = document.getElementById('simSmsInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const res = await fetch('/api/sms/simulate-reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: val })
+      });
+      const data = await res.json();
+      
+      const fb = document.getElementById('smsFeedback');
+      fb.classList.remove('hidden');
+      fb.innerHTML = `<span class="text-amber-400 font-bold">&gt; ${val}</span><br>${data.response}`;
+      
+      leads = data.leads || leads;
+      renderLeads();
+      input.value = '';
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
